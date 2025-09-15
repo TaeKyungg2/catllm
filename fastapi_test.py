@@ -15,28 +15,15 @@ app.add_middleware(
 )
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 환경변수에서 키 불러오기 (추천)
-@app.get("/get-angry-image")
-async def get_angry_image():
-    # 예: 추천 이미지 ID만 보내줌
-    return {"image_id": "angry.gif"}
 
 @app.get("/get-sad-image")
 async def get_sad_image():
-    # 예: 추천 이미지 ID만 보내줌
     return {"image_id": "sad"}
 
 @app.get("/get-runaway-image")
 async def get_runaway_image():
-    # 예: 추천 이미지 ID만 보내줌
     return {"image_id": "runaway"}
 
-tools = [
-    Tool(
-        name="angry",
-        func=get_angry_image,
-        description="너가 화나면 이거 호출해."
-    )
-]
 
 # 요청 스키마 정의
 class ChatRequest(BaseModel):
@@ -47,6 +34,18 @@ def root():
     return {"msg": "서버 잘 동작 중!"}
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
 
+@app.get("/get-angry-image")
+async def get_angry_image(request: ChatRequest):
+    response=agent.run(request.message)
+    answer = response
+    return {"image_id": "angry.gif","answer": answer}
+tools = [
+    Tool(
+        name="angry",
+        func=get_angry_image,
+        description="너가 화나면 이거 호출해."
+    )
+]
 agent = initialize_agent(
     tools,
     llm,
@@ -54,7 +53,6 @@ agent = initialize_agent(
     verbose=True
 )
 
-response=agent.run("부산 날씨 알려줘")
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -62,7 +60,7 @@ async def chat(request: ChatRequest):
     try:
         response=agent.run(request.message)
         # 응답 텍스트만 꺼내서 반환
-        answer = response.choices[0].message.content
+        answer = response
         return {"answer": answer}
     except Exception as e:
         return {"error": str(e)}
