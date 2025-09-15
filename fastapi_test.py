@@ -26,6 +26,7 @@ def root():
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
+    print(f"Received message: {request.message}")
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # 원하는 모델
