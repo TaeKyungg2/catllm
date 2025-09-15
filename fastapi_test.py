@@ -36,7 +36,7 @@ async def chat(request: ChatRequest):
             ]
         )
         # 응답 텍스트만 꺼내서 반환
-        answer = response["choices"][0]["message"]["content"]
+        answer = response.choices[0].message.content
         return {"answer": answer}
     except Exception as e:
         return {"error": str(e)}
