@@ -12,9 +12,8 @@ app.add_middleware(
     allow_methods=["*"],  # GET, POST, OPTIONS 다 허용
     allow_headers=["*"],
 )
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 환경변수에서 키 불러오기 (추천)
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 # 요청 스키마 정의
