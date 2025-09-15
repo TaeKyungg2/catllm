@@ -31,7 +31,7 @@ async def chat(request: ChatRequest):
         response =  client.chat.completions.create(
             model="gpt-3.5-turbo",  # 원하는 모델
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are cat."},
                 {"role": "user", "content": request.message}
             ]
         )
