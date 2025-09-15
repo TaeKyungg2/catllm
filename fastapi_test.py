@@ -2,15 +2,27 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import openai
 import os
+from fastapi.middleware.cors import CORSMiddleware
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 도메인 허용 (개발용)
+    allow_credentials=True,
+    allow_methods=["*"],  # GET, POST, OPTIONS 다 허용
+    allow_headers=["*"],
+)
 
 # 환경변수에서 키 불러오기 (추천)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-app = FastAPI()
 
 # 요청 스키마 정의
 class ChatRequest(BaseModel):
     message: str
+
+@app.get("/")
+def root():
+    return {"msg": "서버 잘 동작 중!"}
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -31,7 +43,7 @@ async def chat(request: ChatRequest):
 @app.get("/get-angry-image")
 async def get_angry_image():
     # 예: 추천 이미지 ID만 보내줌
-    return {"image_id": "angry"}
+    return {"image_id": "angry.gif"}
 
 @app.get("/get-sad-image")
 async def get_sad_image():
@@ -42,3 +54,4 @@ async def get_sad_image():
 async def get_runaway_image():
     # 예: 추천 이미지 ID만 보내줌
     return {"image_id": "runaway"}
+
