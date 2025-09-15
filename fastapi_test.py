@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
-import openai
 import os
 from fastapi.middleware.cors import CORSMiddleware
+from langchain.agents import initialize_agent, Tool
+from langchain_openai import ChatOpenAI
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -14,33 +15,6 @@ app.add_middleware(
 )
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 환경변수에서 키 불러오기 (추천)
-
-
-# 요청 스키마 정의
-class ChatRequest(BaseModel):
-    message: str
-
-@app.get("/")
-def root():
-    return {"msg": "서버 잘 동작 중!"}
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    print(f"Received message: {request.message}")
-    try:
-        response =  client.chat.completions.create(
-            model="gpt-3.5-turbo",  # 원하는 모델
-            messages=[
-                {"role": "system", "content": "You are cat."},
-                {"role": "user", "content": request.message}
-            ]
-        )
-        # 응답 텍스트만 꺼내서 반환
-        answer = response.choices[0].message.content
-        return {"answer": answer}
-    except Exception as e:
-        return {"error": str(e)}
-    
 @app.get("/get-angry-image")
 async def get_angry_image():
     # 예: 추천 이미지 ID만 보내줌
@@ -55,4 +29,43 @@ async def get_sad_image():
 async def get_runaway_image():
     # 예: 추천 이미지 ID만 보내줌
     return {"image_id": "runaway"}
+
+tools = [
+    Tool(
+        name="angry",
+        func=get_angry_image,
+        description="너가 화나면 이거 호출해."
+    )
+]
+
+# 요청 스키마 정의
+class ChatRequest(BaseModel):
+    message: str
+
+@app.get("/")
+def root():
+    return {"msg": "서버 잘 동작 중!"}
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+
+agent = initialize_agent(
+    tools,
+    llm,
+    agent="zero-shot-react-description", # "어떤 도구를 쓸지 스스로 판단"
+    verbose=True
+)
+
+response=agent.run("부산 날씨 알려줘")
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    print(f"Received message: {request.message}")
+    try:
+        response=agent.run(request.message)
+        # 응답 텍스트만 꺼내서 반환
+        answer = response.choices[0].message.content
+        return {"answer": answer}
+    except Exception as e:
+        return {"error": str(e)}
+    
+
 
