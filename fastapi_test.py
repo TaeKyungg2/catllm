@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import openai
+from openai import OpenAI
 import os
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
@@ -11,7 +11,7 @@ app.add_middleware(
     allow_methods=["*"],  # GET, POST, OPTIONS 다 허용
     allow_headers=["*"],
 )
-
+client = OpenAI()
 # 환경변수에서 키 불러오기 (추천)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -28,7 +28,7 @@ def root():
 async def chat(request: ChatRequest):
     print(f"Received message: {request.message}")
     try:
-        response = openai.ChatCompletion.create(
+        response =  client.chat.completions.create(
             model="gpt-3.5-turbo",  # 원하는 모델
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
