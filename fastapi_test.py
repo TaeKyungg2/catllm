@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
-import openai
 import os
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
@@ -14,7 +13,6 @@ app.add_middleware(
 )
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 환경변수에서 키 불러오기 (추천)
-
 
 # 요청 스키마 정의
 class ChatRequest(BaseModel):
@@ -38,6 +36,7 @@ async def chat(request: ChatRequest):
         # 응답 텍스트만 꺼내서 반환
         answer = response.choices[0].message.content
         return {"answer": answer}
+    
     except Exception as e:
         return {"error": str(e)}
     
